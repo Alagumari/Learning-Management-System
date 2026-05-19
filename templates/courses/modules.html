@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% block title %}Manage Curriculum – {{ course.title }}{% endblock %}
+{% block content %}
+<div class="container-fluid px-4 py-4">
+  <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+    <a href="/courses/{{ course.slug }}/" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+    <div class="flex-grow-1"><h1 class="page-title mb-0">Course Curriculum</h1><p class="page-subtitle mb-0">{{ course.title }}</p></div>
+    <div class="d-flex gap-2">
+      {% if course.status == 'draft' or course.status == 'rejected' %}
+      <form method="post" action="/courses/{{ course.slug }}/publish/" class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-send me-1"></i>Submit for Review</button>
+      </form>
+      {% endif %}
+      <a href="/courses/{{ course.slug }}/edit/" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil me-1"></i>Edit Course</a>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-8">
+      {% for module in modules %}
+      <div class="card mb-3">
+        <div class="p-3 border-bottom d-flex align-items-center gap-2">
+          <i class="bi bi-grip-vertical text-muted"></i>
+          <div class="flex-grow-1"><span class="fw-bold">{{ forloop.counter }}. {{ module.title }}</span>
+          <span class="badge bg-light text-muted ms-2">{{ module.lessons.count }} lessons</span></div>
+          <div class="d-flex gap-1">
+            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addLessonModal{{ module.id }}"><i class="bi bi-plus"></i> Lesson</button>
+            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editModuleModal{{ module.id }}"><i class="bi bi-pencil"></i></button>
+            <form method="post" action="/courses/module/{{ module.id }}/delete/" class="d-inline">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this module?')"><i class="bi bi-trash"></i></button>
+            </form>
+          </div>
+        </div>
+        <div class="p-2">
+          {% for lesson in module.lessons.all %}
+          <div class="d-flex align-items-center gap-2 p-2 rounded mb-1" style="background:var(--gray-50);">
+            <i class="bi bi-{% if lesson.content_type == 'video' %}camera-video{% elif lesson.content_type == 'pdf' %}file-pdf{% elif lesson.content_type == 'quiz' %}question-circle{% else %}file-text{% endif %} text-primary"></i>
+            <span class="flex-grow-1" style="font-size:.88rem;">{{ lesson.title }}</span>
+            {% if lesson.is_preview %}<span class="badge" style="background:var(--primary-light);color:var(--primary);font-size:.7rem;">Preview</span>{% endif %}
+            {% if lesson.duration %}<span class="text-muted" style="font-size:.78rem;">{{ lesson.duration }}m</span>{% endif %}
+            <div class="d-flex gap-1">
+              <button class="btn btn-sm btn-link p-0 text-secondary" data-bs-toggle="modal" data-bs-target="#editLessonModal{{ lesson.id }}"><i class="bi bi-pencil"></i></button>
+              <form method="post" action="/courses/lesson/{{ lesson.id }}/delete/" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-link p-0 text-danger" onclick="return confirm('Delete lesson?')"><i class="bi bi-trash"></i></button>
+              </form>
+            </div>
+          </div>
+          {% empty %}
+          <div class="text-center text-muted py-3" style="font-size:.85rem;">No lessons yet. Add your first lesson.</div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Add Lesson Modal -->
+      <div class="modal fade" id="addLessonModal{{ module.id }}" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content" style="border-radius:16px;">
+            <div class="modal-header border-0 pb-0"><h5 class="modal-title fw-bold">Add Lesson to "{{ module.title }}"</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+              <form method="post" action="/courses/module/{{ module.id }}/lesson/add/" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="row g-3">
+                  <div class="col-md-8"><label class="form-label">Lesson Title *</label>{{ lesson_form.title }}</div>
+                  <div class="col-md-4"><label class="form-label">Type</label>{{ lesson_form.content_type }}</div>
+                  <div class="col-md-6"><label class="form-label">Video File</label>{{ lesson_form.video }}</div>
+                  <div class="col-md-6"><label class="form-label">Video URL</label>{{ lesson_form.video_url }}</div>
+                  <div class="col-md-6"><label class="form-label">PDF File</label>{{ lesson_form.pdf }}</div>
+                  <div class="col-md-3"><label class="form-label">Duration (min)</label>{{ lesson_form.duration }}</div>
+                  <div class="col-md-3"><label class="form-label">Order</label>{{ lesson_form.order }}</div>
+                  <div class="col-12"><label class="form-label">Text Content</label>{{ lesson_form.text_content }}</div>
+                  <div class="col-12"><div class="form-check">{{ lesson_form.is_preview }} <label class="form-check-label">Free preview lesson</label></div></div>
+                </div>
+                <div class="mt-3 d-flex gap-2">
+                  <button type="submit" class="btn btn-primary fw-bold">Add Lesson</button>
+                  <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card p-4 mb-3">
+        <h5 class="fw-bold mb-3">➕ Add Module</h5>
+        <form method="post" action="/courses/{{ course.slug }}/modules/add/">
+          {% csrf_token %}
+          <div class="mb-3"><label class="form-label">Module Title *</label>{{ module_form.title }}</div>
+          <div class="mb-3"><label class="form-label">Description</label>{{ module_form.description }}</div>
+          <div class="mb-3"><label class="form-label">Order</label>{{ module_form.order }}</div>
+          <button type="submit" class="btn btn-primary w-100 fw-bold">Add Module</button>
+        </form>
+      </div>
+      <div class="card p-4">
+        <h6 class="fw-bold mb-2">📊 Course Status</h6>
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <span class="badge-status badge-{{ course.status }}">{{ course.get_status_display }}</span>
+        </div>
+        <div style="font-size:.85rem;color:var(--gray-600);">
+          <div class="d-flex justify-content-between mb-1"><span>Modules</span><strong>{{ modules.count }}</strong></div>
+          <div class="d-flex justify-content-between mb-1"><span>Lessons</span><strong>{{ course.total_lessons }}</strong></div>
+          <div class="d-flex justify-content-between mb-1"><span>Duration</span><strong>{{ course.total_duration }}m</strong></div>
+          <div class="d-flex justify-content-between"><span>Enrolled</span><strong>{{ course.total_enrolled }}</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

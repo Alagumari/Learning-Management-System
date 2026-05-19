@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}Create Course – EduLearn{% endblock %}
+{% block content %}
+<div class="container-fluid px-4 py-4">
+  <div class="row justify-content-center">
+    <div class="col-xl-9">
+      <div class="d-flex align-items-center gap-3 mb-4">
+        <a href="/dashboard/" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+        <div><h1 class="page-title mb-0">Create New Course</h1><p class="page-subtitle mb-0">Share your knowledge with the world</p></div>
+      </div>
+      <form method="post" enctype="multipart/form-data" data-validate>
+        {% csrf_token %}
+        <div class="row g-4">
+          <div class="col-lg-8">
+            <div class="card p-4 mb-4">
+              <h5 class="fw-bold mb-3">📝 Basic Information</h5>
+              <div class="mb-3"><label class="form-label">Course Title *</label>{{ form.title }}</div>
+              <div class="mb-3"><label class="form-label">Short Description</label>{{ form.short_description }}<div class="form-text">A brief summary (shown in course cards)</div></div>
+              <div class="mb-3"><label class="form-label">Full Description *</label>{{ form.description }}</div>
+              <div class="row g-3">
+                <div class="col-md-6"><label class="form-label">Category</label>{{ form.category }}</div>
+                <div class="col-md-6"><label class="form-label">Level</label>{{ form.level }}</div>
+              </div>
+            </div>
+            <div class="card p-4 mb-4">
+              <h5 class="fw-bold mb-3">💰 Pricing</h5>
+              <div class="mb-3"><label class="form-label">Price Type</label>{{ form.price_type }}</div>
+              <div id="priceFields">
+                <div class="row g-3">
+                  <div class="col-md-6"><label class="form-label">Original Price (₹)</label>{{ form.price }}</div>
+                  <div class="col-md-6"><label class="form-label">Discount Price (₹)</label>{{ form.discount_price }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="card p-4 mb-4">
+              <h5 class="fw-bold mb-3">📋 Requirements & Outcomes</h5>
+              <div class="mb-3"><label class="form-label">Requirements</label>{{ form.requirements }}<div class="form-text">One per line</div></div>
+              <div class="mb-3"><label class="form-label">What Students Will Learn</label>{{ form.what_you_learn }}<div class="form-text">One per line</div></div>
+              <div class="mb-3"><label class="form-label">Tags</label>{{ form.tags }}<div class="form-text">Comma separated</div></div>
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="card p-4 mb-4">
+              <h5 class="fw-bold mb-3">🖼️ Media</h5>
+              <div class="mb-3"><label class="form-label">Course Thumbnail</label>{{ form.thumbnail }}<div class="form-text">Recommended: 1280×720px</div></div>
+              <div class="mb-3"><label class="form-label">Preview Video</label>{{ form.preview_video }}</div>
+            </div>
+            <div class="card p-4 mb-4">
+              <h5 class="fw-bold mb-3">⚙️ Settings</h5>
+              <div class="mb-3"><label class="form-label">Language</label>{{ form.language }}</div>
+              <div class="form-check"><label class="form-check-label">{{ form.certificate_available }} Issue Certificate on Completion</label></div>
+            </div>
+            <div class="card p-4">
+              <button type="submit" class="btn btn-primary w-100 py-3 fw-bold mb-2"><i class="bi bi-save me-2"></i>Save as Draft</button>
+              <p class="text-muted text-center" style="font-size:.8rem;">You can add lessons after saving</p>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

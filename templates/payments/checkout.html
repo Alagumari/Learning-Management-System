@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% block title %}Checkout – {{ course.title }} | EduLearn{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-xl-10">
+
+      <nav class="mb-4" style="font-size:.85rem;">
+        <a href="/courses/" style="color:var(--primary);text-decoration:none;">Courses</a>
+        <span class="mx-2 text-muted">/</span>
+        <a href="/courses/{{ course.slug }}/" style="color:var(--primary);text-decoration:none;">{{ course.title|truncatewords:4 }}</a>
+        <span class="mx-2 text-muted">/</span>
+        <span class="text-muted">Checkout</span>
+      </nav>
+
+      <div class="row g-4">
+        <!-- ORDER SUMMARY -->
+        <div class="col-lg-7">
+          <div class="card p-4 mb-4">
+            <h4 class="fw-bold mb-4">🛒 Order Summary</h4>
+            <div class="d-flex gap-3 align-items-start mb-4 pb-4" style="border-bottom:1px solid var(--gray-100);">
+              <div style="width:100px;height:72px;border-radius:10px;overflow:hidden;flex-shrink:0;background:var(--primary-light);">
+                {% if course.thumbnail %}
+                <img src="{{ course.thumbnail.url }}" style="width:100%;height:100%;object-fit:cover;">
+                {% else %}
+                <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem;">📚</div>
+                {% endif %}
+              </div>
+              <div class="flex-grow-1">
+                <div class="fw-bold mb-1">{{ course.title }}</div>
+                <div style="font-size:.82rem;color:var(--gray-500);">By {{ course.instructor.get_full_name|default:course.instructor.username }}</div>
+                <div class="d-flex flex-wrap gap-2 mt-2" style="font-size:.78rem;color:var(--gray-600);">
+                  <span><i class="bi bi-play-circle me-1"></i>{{ course.total_lessons }} lessons</span>
+                  <span><i class="bi bi-bar-chart me-1"></i>{{ course.level|capfirst }}</span>
+                  <span><i class="bi bi-award me-1"></i>Certificate</span>
+                </div>
+              </div>
+            </div>
+            <div class="mb-1 d-flex justify-content-between" style="font-size:.92rem;">
+              <span class="text-muted">Original Price</span><span>&#8377;{{ course.price }}</span>
+            </div>
+            {% if course.discount_price %}
+            <div class="mb-1 d-flex justify-content-between" style="font-size:.92rem;color:var(--success);">
+              <span>Discount Applied 🎉</span><span>– &#8377;{{ course.price }}</span>
+            </div>
+            {% endif %}
+            <div class="d-flex justify-content-between fw-bold mt-3 pt-3" style="border-top:2px solid var(--gray-100);font-size:1.15rem;">
+              <span>Total</span><span style="color:var(--primary);">&#8377;{{ amount_inr }}</span>
+            </div>
+          </div>
+          <div class="card p-4">
+            <h6 class="fw-bold mb-3">✅ This course includes</h6>
+            <div class="row g-2" style="font-size:.88rem;">
+              <div class="col-6 d-flex gap-2"><i class="bi bi-infinity text-primary"></i> Lifetime access</div>
+              <div class="col-6 d-flex gap-2"><i class="bi bi-phone text-primary"></i> Mobile &amp; desktop</div>
+              <div class="col-6 d-flex gap-2"><i class="bi bi-play-circle text-primary"></i> {{ course.total_lessons }} lessons</div>
+              <div class="col-6 d-flex gap-2"><i class="bi bi-award text-primary"></i> Certificate</div>
+              <div class="col-6 d-flex gap-2"><i class="bi bi-shield-check text-success"></i> 30-day guarantee</div>
+              <div class="col-6 d-flex gap-2"><i class="bi bi-headset text-primary"></i> Full support</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PAYMENT PANEL -->
+        <div class="col-lg-5">
+          <div class="card p-4" style="position:sticky;top:80px;">
+            <h5 class="fw-bold mb-1">Secure Payment</h5>
+            <p style="font-size:.82rem;color:var(--gray-500);margin-bottom:1.5rem;">
+              <i class="bi bi-shield-lock me-1 text-success"></i>256-bit SSL · Powered by Razorpay
+            </p>
+            <div class="text-center mb-4 p-3 rounded-3" style="background:linear-gradient(135deg,var(--primary-light),#ddd6fe30);">
+              <div style="font-size:.82rem;color:var(--gray-600);margin-bottom:.25rem;">Total Amount</div>
+              <div style="font-size:2.5rem;font-weight:900;font-family:'Poppins',sans-serif;color:var(--primary);">&#8377;{{ amount_inr }}</div>
+              <div style="font-size:.78rem;color:var(--gray-500);">One-time · Lifetime access</div>
+            </div>
+
+            <button id="rzpPayBtn" onclick="openRazorpay()"
+              class="btn btn-primary w-100 py-3 fw-bold mb-3"
+              style="border-radius:12px;font-size:1.05rem;">
+              <i class="bi bi-credit-card me-2"></i>Pay &#8377;{{ amount_inr }} Now
+            </button>
+
+            <div class="text-center" style="font-size:.78rem;color:var(--gray-400);">
+              By completing purchase you agree to our Terms of Service.
+            </div>
+
+            <div class="d-flex justify-content-center gap-2 flex-wrap mt-3">
+              <span style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:6px;padding:4px 10px;font-size:.72rem;font-weight:600;color:var(--gray-700);">UPI</span>
+              <span style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:6px;padding:4px 10px;font-size:.72rem;font-weight:600;color:var(--gray-700);">Cards</span>
+              <span style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:6px;padding:4px 10px;font-size:.72rem;font-weight:600;color:var(--gray-700);">NetBanking</span>
+              <span style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:6px;padding:4px 10px;font-size:.72rem;font-weight:600;color:var(--gray-700);">Wallets</span>
+            </div>
+
+            <hr class="my-3">
+            <div class="d-flex align-items-center gap-2" style="font-size:.8rem;color:var(--gray-500);">
+              <i class="bi bi-arrow-counterclockwise text-success"></i>
+              30-day money-back guarantee — no questions asked
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% csrf_token %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+const RZP_KEY_ID   = "{{ razorpay_key_id }}";
+const RZP_ORDER_ID = "{{ razorpay_order_id }}";
+const AMT_PAISE    = {{ amount_paise }};
+const AMT_INR      = "{{ amount_inr }}";
+const CSRF         = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+function openRazorpay() {
+  const btn = document.getElementById('rzpPayBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Opening…';
+
+  const options = {
+    key:         RZP_KEY_ID,
+    amount:      AMT_PAISE,
+    currency:    "INR",
+    name:        "EduLearn",
+    description: "{{ course.title|escapejs }}",
+    order_id:    RZP_ORDER_ID,
+    prefill: {
+      name:    "{{ user_name|escapejs }}",
+      email:   "{{ user_email|escapejs }}",
+      contact: "{{ user_phone|escapejs }}",
+    },
+    theme: { color: "#6c3cf7" },
+    modal: {
+      ondismiss: function() {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-credit-card me-2"></i>Pay &#8377;' + AMT_INR + ' Now';
+        showToast('Cancelled', 'Payment was cancelled.', 'warning');
+      }
+    },
+    handler: function(resp) {
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verifying…';
+      fetch('/payments/verify/', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF, 'X-Requested-With': 'XMLHttpRequest' },
+        body: JSON.stringify({
+          razorpay_order_id:   resp.razorpay_order_id,
+          razorpay_payment_id: resp.razorpay_payment_id,
+          razorpay_signature:  resp.razorpay_signature,
+        }),
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          btn.innerHTML = '✅ Payment Successful! Redirecting…';
+          btn.style.background = 'var(--success)';
+          showToast('🎉 Enrolled!', data.message, 'success');
+          setTimeout(() => window.location.href = data.redirect || '/dashboard/', 2000);
+        } else {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="bi bi-credit-card me-2"></i>Try Again';
+          showToast('Verification Failed', data.error || 'Please contact support.', 'error');
+        }
+      })
+      .catch(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-credit-card me-2"></i>Try Again';
+        showToast('Network Error', 'Could not verify. Contact support.', 'error');
+      });
+    },
+  };
+
+  const rzp = new Razorpay(options);
+  rzp.on('payment.failed', function(r) {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-credit-card me-2"></i>Pay &#8377;' + AMT_INR + ' Now';
+    showToast('Payment Failed', r.error.description || 'Payment could not be completed.', 'error');
+  });
+  rzp.open();
+}
+</script>
+{% endblock %}

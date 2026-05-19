@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Certificate – {{ certificate.course.title }}{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <!-- Certificate Display -->
+      <div style="background:linear-gradient(135deg,#fffbeb,#fef3c7);border:3px solid #f59e0b;border-radius:20px;padding:3rem;text-align:center;position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(245,158,11,.2);">
+        <div style="position:absolute;top:0;left:0;right:0;bottom:0;opacity:.04;font-size:15rem;display:flex;align-items:center;justify-content:center;pointer-events:none;">🎓</div>
+        <div style="border:2px solid rgba(245,158,11,.4);border-radius:16px;padding:2rem;position:relative;">
+          <div style="font-size:2.5rem;margin-bottom:.5rem;">🎓</div>
+          <div style="font-size:.85rem;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.15em;margin-bottom:.5rem;">Certificate of Completion</div>
+          <div style="width:80px;height:2px;background:linear-gradient(90deg,transparent,#f59e0b,transparent);margin:0 auto 1.5rem;"></div>
+          <p style="font-size:1.1rem;color:var(--gray-600);">This certifies that</p>
+          <h1 style="font-family:'Poppins',sans-serif;font-size:2.5rem;font-weight:800;color:var(--dark);margin:.5rem 0;">
+            {{ certificate.user.get_full_name|default:certificate.user.username }}
+          </h1>
+          <p style="font-size:1rem;color:var(--gray-600);margin-bottom:.5rem;">has successfully completed</p>
+          <h3 style="font-size:1.5rem;font-weight:700;color:var(--primary);margin-bottom:1.5rem;">"{{ certificate.course.title }}"</h3>
+          <p style="font-size:.9rem;color:var(--gray-500);">Issued on <strong>{{ certificate.issued_at|date:"F d, Y" }}</strong></p>
+          <div style="border-top:1px dashed rgba(245,158,11,.5);padding-top:1rem;margin-top:1rem;">
+            <div style="font-size:.7rem;color:var(--gray-400);">Certificate ID: {{ certificate.certificate_id }}</div>
+          </div>
+          <div class="d-flex justify-content-around mt-3">
+            <div style="text-align:center;">
+              <div style="border-top:1.5px solid #d97706;width:120px;margin:0 auto .5rem;"></div>
+              <div style="font-size:.8rem;color:var(--gray-600);">{{ certificate.course.instructor.get_full_name|default:certificate.course.instructor.username }}</div>
+              <div style="font-size:.7rem;color:var(--gray-400);">Instructor</div>
+            </div>
+            <div style="text-align:center;">
+              <div style="border-top:1.5px solid #d97706;width:120px;margin:0 auto .5rem;"></div>
+              <div style="font-size:.8rem;color:var(--gray-600);">EduLearn Platform</div>
+              <div style="font-size:.7rem;color:var(--gray-400);">Authorized Signatory</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex gap-3 justify-content-center mt-4">
+        <a href="/certificates/{{ certificate.certificate_id }}/download/" class="btn btn-warning btn-lg fw-bold px-5">
+          <i class="bi bi-download me-2"></i>Download PDF
+        </a>
+        <a href="/certificates/verify/{{ certificate.certificate_id }}/" class="btn btn-outline-secondary btn-lg" target="_blank">
+          <i class="bi bi-shield-check me-2"></i>Verify
+        </a>
+        <a href="/certificates/" class="btn btn-outline-primary btn-lg">
+          <i class="bi bi-arrow-left me-2"></i>All Certificates
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

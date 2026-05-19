@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}My Profile – EduLearn{% endblock %}
+{% block content %}
+<div class="container-fluid px-4 py-4">
+  <div class="row justify-content-center">
+    <div class="col-xl-8">
+      <div class="d-flex align-items-center gap-3 mb-4">
+        <a href="/dashboard/" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+        <h1 class="page-title mb-0">My Profile</h1>
+      </div>
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="card p-4 text-center">
+            {% if user.avatar %}<img src="{{ user.avatar.url }}" class="rounded-circle mb-3" style="width:100px;height:100px;object-fit:cover;border:3px solid var(--primary);">
+            {% else %}<div class="user-avatar-placeholder mx-auto mb-3" style="width:100px;height:100px;font-size:2rem;border-radius:50%;">{{ user.username|first|upper }}</div>{% endif %}
+            <h5 class="fw-bold mb-1">{{ user.get_full_name|default:user.username }}</h5>
+            <span class="badge" style="background:var(--primary-light);color:var(--primary);">{{ user.role|capfirst }}</span>
+            <div style="font-size:.85rem;color:var(--gray-600);margin-top:.75rem;">{{ user.email }}</div>
+            {% if user.bio %}<p style="font-size:.85rem;color:var(--gray-700);margin-top:.75rem;">{{ user.bio }}</p>{% endif %}
+            <div class="mt-3" style="font-size:.82rem;color:var(--gray-500);">Member since {{ user.date_joined|date:"M Y" }}</div>
+          </div>
+        </div>
+        <div class="col-md-8">
+          <div class="card p-4">
+            <h5 class="fw-bold mb-4">Edit Profile</h5>
+            <form method="post" enctype="multipart/form-data" data-validate>
+              {% csrf_token %}
+              <div class="row g-3">
+                <div class="col-md-6"><label class="form-label">First Name</label>{{ form.first_name }}</div>
+                <div class="col-md-6"><label class="form-label">Last Name</label>{{ form.last_name }}</div>
+                <div class="col-12"><label class="form-label">Email</label>{{ form.email }}</div>
+                <div class="col-12"><label class="form-label">Bio</label>{{ form.bio }}</div>
+                <div class="col-md-6"><label class="form-label">Phone</label>{{ form.phone }}</div>
+                <div class="col-md-6"><label class="form-label">Website</label>{{ form.website }}</div>
+                <div class="col-12"><label class="form-label">LinkedIn</label>{{ form.linkedin }}</div>
+                <div class="col-12"><label class="form-label">Profile Photo</label>{{ form.avatar }}</div>
+              </div>
+              <button type="submit" class="btn btn-primary mt-4 fw-bold px-4"><i class="bi bi-save me-2"></i>Save Changes</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Verify Certificate – EduLearn{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-6 text-center">
+      {% if valid %}
+      <div style="font-size:5rem;color:var(--success);">✅</div>
+      <h2 class="fw-bold mt-3">Certificate Verified!</h2>
+      <p class="text-muted mb-4">This is a genuine EduLearn certificate.</p>
+      <div class="card p-4 text-start">
+        <div class="mb-3"><span class="form-label">Student</span><div class="fw-bold">{{ certificate.user.get_full_name|default:certificate.user.username }}</div></div>
+        <div class="mb-3"><span class="form-label">Course</span><div class="fw-bold">{{ certificate.course.title }}</div></div>
+        <div class="mb-3"><span class="form-label">Instructor</span><div class="fw-bold">{{ certificate.course.instructor.get_full_name|default:certificate.course.instructor.username }}</div></div>
+        <div><span class="form-label">Issue Date</span><div class="fw-bold">{{ certificate.issued_at|date:"F d, Y" }}</div></div>
+      </div>
+      <a href="/certificates/{{ certificate.certificate_id }}/" class="btn btn-primary mt-3 fw-bold">View Certificate</a>
+      {% else %}
+      <div style="font-size:5rem;color:var(--danger);">❌</div>
+      <h2 class="fw-bold mt-3">Certificate Not Found</h2>
+      <p class="text-muted">This certificate ID is invalid or does not exist.</p>
+      <a href="/" class="btn btn-primary mt-2">Go Home</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

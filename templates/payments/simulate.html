@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Payment – EduLearn{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-5">
+      <div class="card p-5 text-center">
+        <div style="font-size:3rem;margin-bottom:1rem;">💳</div>
+        <h3 class="fw-bold mb-1">Demo Payment</h3>
+        <p class="text-muted mb-4">This is a simulated payment for demo purposes</p>
+        <div class="card p-3 mb-4" style="background:var(--gray-50);">
+          <div class="d-flex justify-content-between mb-2"><span>Course</span><span class="fw-bold">{{ order.course.title|truncatewords:4 }}</span></div>
+          <div class="d-flex justify-content-between"><span>Amount</span><span class="fw-bold" style="color:var(--primary);">₹{{ order.amount }}</span></div>
+        </div>
+        <form method="post" action="/payments/simulate/{{ order.order_id }}/">
+          {% csrf_token %}
+          <div class="mb-3 text-start"><label class="form-label">Card Number</label><input class="form-control" value="4242 4242 4242 4242" readonly style="font-family:monospace;"></div>
+          <div class="row g-2 mb-3">
+            <div class="col-6 text-start"><label class="form-label">Expiry</label><input class="form-control" value="12/27" readonly></div>
+            <div class="col-6 text-start"><label class="form-label">CVV</label><input class="form-control" value="123" readonly></div>
+          </div>
+          <button type="submit" class="btn btn-success w-100 py-3 fw-bold" style="border-radius:12px;">
+            <i class="bi bi-lock me-2"></i>Pay ₹{{ order.amount }} (Demo)
+          </button>
+        </form>
+        <div style="font-size:.75rem;color:var(--gray-400);margin-top:1rem;">This is a test payment. No real charges will be made.</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

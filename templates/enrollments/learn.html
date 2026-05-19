@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+{% block title %}{{ lesson.title }} – {{ course.title }}{% endblock %}
+{% block show_footer %}{% endblock %}
+{% block main_class %}p-0{% endblock %}
+
+{% block content %}
+<div class="learn-layout">
+  <!-- Video/Content Area -->
+  <div class="learn-video-area">
+    <!-- Video Player -->
+    <div class="video-container">
+      {% if lesson.video %}
+      <video id="lessonVideo" controls data-lesson-id="{{ lesson.id }}" style="width:100%;max-height:65vh;background:#000;">
+        <source src="{{ lesson.video.url }}" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+      {% elif lesson.video_url %}
+      <div style="position:relative;padding-bottom:56.25%;height:0;background:#000;">
+        {% if 'youtube' in lesson.video_url or 'youtu.be' in lesson.video_url %}
+        <iframe src="https://www.youtube.com/embed/{{ lesson.video_url|slice:'-11:' }}"
+          style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allowfullscreen></iframe>
+        {% else %}
+        <iframe src="{{ lesson.video_url }}"
+          style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allowfullscreen></iframe>
+        {% endif %}
+      </div>
+      {% elif lesson.pdf %}
+      <div style="background:#1e1b4b;padding:3rem;text-align:center;">
+        <i class="bi bi-file-pdf" style="font-size:4rem;color:#ef4444;"></i>
+        <h4 style="color:white;margin-top:1rem;">{{ lesson.title }}</h4>
+        <a href="{{ lesson.pdf.url }}" target="_blank" class="btn btn-danger mt-3">
+          <i class="bi bi-download me-2"></i>Download PDF
+        </a>
+        <div style="margin-top:1rem;">
+          <iframe src="{{ lesson.pdf.url }}" style="width:100%;height:500px;border:none;border-radius:8px;"></iframe>
+        </div>
+      </div>
+      {% elif lesson.content_type == 'text' %}
+      <div style="background:#1e1b4b;padding:2rem;min-height:200px;display:flex;align-items:center;justify-content:center;">
+        <i class="bi bi-file-text" style="font-size:4rem;color:rgba(255,255,255,.4);"></i>
+      </div>
+      {% else %}
+      <div style="background:#1e1b4b;height:200px;display:flex;align-items:center;justify-content:center;">
+        <i class="bi bi-play-circle" style="font-size:4rem;color:rgba(255,255,255,.3);"></i>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Lesson Info Panel -->
+    <div class="lesson-info-panel">
+      <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
+        <div>
+          <div style="font-size:.78rem;color:var(--primary);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem;">
+            {{ lesson.module.title }}
+          </div>
+          <h2 style="font-size:1.4rem;font-weight:800;margin:0;">{{ lesson.title }}</h2>
+        </div>
+        <div class="d-flex gap-2">
+          {% if prev_lesson %}
+          <a href="/enrollments/learn/{{ course.slug }}/{{ prev_lesson.id }}/" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-chevron-left me-1"></i>Previous
+          </a>
+          {% endif %}
+          {% if next_lesson %}
+          <a href="/enrollments/learn/{{ course.slug }}/{{ next_lesson.id }}/" class="btn btn-outline-primary btn-sm">
+            Next<i class="bi bi-chevron-right ms-1"></i>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Progress bar -->
+      <div class="mb-4">
+        <div class="d-flex justify-content-between mb-1" style="font-size:.82rem;">
+          <span style="color:var(--gray-600);">Course Progress</span>
+          <span id="progressText" class="fw-bold" style="color:var(--primary);">{{ enrollment.progress }}%</span>
+        </div>
+        <div class="progress" style="height:8px;">
+          <div class="progress-bar" id="progressBar" style="width:{{ enrollment.progress }}%" role="progressbar"></div>
+        </div>
+      </div>
+
+      <!-- Mark complete button -->
+      <div class="d-flex flex-wrap gap-2 mb-4">
+        {% if progress_obj.is_completed %}
+        <button class="btn btn-success" disabled style="border-radius:10px;">
+          <i class="bi bi-check-circle-fill me-2"></i>Completed
+        </button>
+        {% else %}
+        <button class="btn btn-primary" id="markCompleteBtn" data-lesson-id="{{ lesson.id }}" style="border-radius:10px;">
+          <i class="bi bi-check-circle me-2"></i>Mark as Complete
+        </button>
+        {% endif %}
+        {% if next_lesson %}
+        <a href="/enrollments/learn/{{ course.slug }}/{{ next_lesson.id }}/" class="btn btn-outline-secondary" style="border-radius:10px;">
+          Next Lesson <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+        {% endif %}
+      </div>
+
+      <!-- Text content -->
+      {% if lesson.text_content %}
+      <div class="card p-4" style="border-radius:12px;">
+        <h5 class="fw-bold mb-3">📄 Lesson Content</h5>
+        <div style="line-height:1.9;color:var(--gray-700);">{{ lesson.text_content|linebreaksbr }}</div>
+      </div>
+      {% endif %}
+
+      <!-- Resources -->
+      {% if lesson.resources.exists %}
+      <div class="card p-4 mt-3" style="border-radius:12px;">
+        <h5 class="fw-bold mb-3">📎 Resources</h5>
+        {% for resource in lesson.resources.all %}
+        <a href="{{ resource.file.url }}" target="_blank" class="d-flex align-items-center gap-2 p-2 rounded mb-2 text-decoration-none"
+           style="background:var(--gray-50);color:var(--gray-700);transition:all .2s;" onmouseover="this.style.background='var(--primary-light)'" onmouseout="this.style.background='var(--gray-50)'">
+          <i class="bi bi-download text-primary"></i>
+          <span style="font-size:.9rem;">{{ resource.title }}</span>
+        </a>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Quiz link if module has quiz -->
+      {% if lesson.module.quiz %}
+      <div class="card p-4 mt-3" style="border-radius:12px;background:linear-gradient(135deg,var(--primary-light),#ddd6fe30);border:1px solid var(--primary)30;">
+        <div class="d-flex align-items-center gap-3">
+          <div class="stat-icon" style="background:var(--primary-light);color:var(--primary);flex-shrink:0;">
+            <i class="bi bi-question-circle-fill"></i>
+          </div>
+          <div class="flex-grow-1">
+            <div class="fw-bold">Module Quiz Available</div>
+            <div style="font-size:.85rem;color:var(--gray-600);">{{ lesson.module.quiz.questions.count }} questions • {{ lesson.module.quiz.pass_score }}% to pass</div>
+          </div>
+          <a href="/quizzes/{{ lesson.module.quiz.id }}/" class="btn btn-primary btn-sm">
+            Take Quiz <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Sidebar: Curriculum -->
+  <div class="learn-sidebar">
+    <div class="p-3 border-bottom" style="background:var(--gray-50);">
+      <div class="fw-bold" style="font-size:.9rem;">📚 Course Content</div>
+      <a href="/courses/{{ course.slug }}/" style="font-size:.78rem;color:var(--primary);">Back to course</a>
+    </div>
+
+    {% for module in modules %}
+    <div>
+      <div class="module-header-accordion" style="cursor:pointer;">
+        <div>
+          <div style="font-size:.82rem;font-weight:700;">{{ module.title }}</div>
+          <div style="font-size:.72rem;color:var(--gray-500);">{{ module.lessons.count }} lessons</div>
+        </div>
+        <i class="bi bi-chevron-down accordion-icon" style="font-size:.8rem;transition:.3s;"></i>
+      </div>
+      <div class="module-lessons">
+        {% for l in module.lessons.all %}
+        <a href="/enrollments/learn/{{ course.slug }}/{{ l.id }}/"
+           class="lesson-item {% if l.id == lesson.id %}active{% endif %} {% if l.id in completed_ids %}completed{% endif %}"
+           data-lesson-id="{{ l.id }}">
+          <div class="lesson-check">
+            {% if l.id in completed_ids %}<i class="bi bi-check" style="font-size:.7rem;"></i>{% endif %}
+          </div>
+          <div class="flex-grow-1">
+            <div style="font-size:.83rem;line-height:1.3;{% if l.id == lesson.id %}font-weight:600;{% endif %}">{{ l.title }}</div>
+            <div style="font-size:.72rem;color:var(--gray-400);margin-top:1px;">
+              <i class="bi bi-{% if l.content_type == 'video' %}camera-video{% elif l.content_type == 'pdf' %}file-pdf{% elif l.content_type == 'quiz' %}question-circle{% else %}file-text{% endif %}"></i>
+              {% if l.duration %}{{ l.duration }}m{% else %}{{ l.content_type|capfirst }}{% endif %}
+            </div>
+          </div>
+          {% if l.id == lesson.id %}<i class="bi bi-play-fill text-primary" style="font-size:.75rem;"></i>{% endif %}
+        </a>
+        {% endfor %}
+        {% if module.quiz %}
+        <a href="/quizzes/{{ module.quiz.id }}/" class="lesson-item" style="background:var(--gray-50);">
+          <div class="lesson-check" style="border-color:var(--warning);"><i class="bi bi-question" style="font-size:.65rem;color:var(--warning);"></i></div>
+          <div class="flex-grow-1">
+            <div style="font-size:.83rem;">{{ module.quiz.title }}</div>
+            <div style="font-size:.72rem;color:var(--gray-400);">{{ module.quiz.questions.count }} questions</div>
+          </div>
+        </a>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-open current module
+document.querySelectorAll('.module-header-accordion').forEach((header, idx) => {
+  const content = header.nextElementSibling;
+  const icon = header.querySelector('.accordion-icon');
+  // Check if current lesson is inside
+  const hasActive = content?.querySelector('.lesson-item.active');
+  if (!hasActive) {
+    content.style.display = 'none';
+    if (icon) icon.style.transform = 'rotate(0deg)';
+  } else {
+    if (icon) icon.style.transform = 'rotate(180deg)';
+  }
+  header.addEventListener('click', () => {
+    const isOpen = content.style.display !== 'none';
+    content.style.display = isOpen ? 'none' : 'block';
+    if (icon) icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+  });
+});
+</script>
+{% endblock %}

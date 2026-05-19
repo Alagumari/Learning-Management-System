@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard – EduLearn{% endblock %}
+{% block content %}
+<div class="container-fluid px-4 py-4">
+  <div class="dashboard-header">
+    <h1 class="page-title">🛡️ Admin Dashboard</h1>
+    <p class="page-subtitle">Platform overview and management</p>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="row g-4 mb-4">
+    {% for stat in "123456"|make_list %}
+    {% if stat == "1" %}
+    <div class="col-sm-6 col-xl-2"><div class="card-stat"><div class="stat-icon" style="background:var(--primary-light);color:var(--primary);"><i class="bi bi-people"></i></div><div class="stat-value">{{ total_users }}</div><div class="stat-label">Total Users</div></div></div>
+    {% elif stat == "2" %}
+    <div class="col-sm-6 col-xl-2"><div class="card-stat"><div class="stat-icon" style="background:#dcfce7;color:var(--success);"><i class="bi bi-mortarboard"></i></div><div class="stat-value">{{ total_students }}</div><div class="stat-label">Students</div></div></div>
+    {% elif stat == "3" %}
+    <div class="col-sm-6 col-xl-2"><div class="card-stat"><div class="stat-icon" style="background:#fef9c3;color:#854d0e;"><i class="bi bi-person-video3"></i></div><div class="stat-value">{{ total_instructors }}</div><div class="stat-label">Instructors</div></div></div>
+    {% elif stat == "4" %}
+    <div class="col-sm-6 col-xl-2"><div class="card-stat"><div class="stat-icon" style="background:#dbeafe;color:var(--info);"><i class="bi bi-collection-play"></i></div><div class="stat-value">{{ total_courses }}</div><div class="stat-label">Total Courses</div></div></div>
+    {% elif stat == "5" %}
+    <div class="col-sm-6 col-xl-2"><div class="card-stat"><div class="stat-icon" style="background:#fee2e2;color:var(--danger);"><i class="bi bi-clock-history"></i></div><div class="stat-value">{{ pending }}</div><div class="stat-label">Pending Review</div></div></div>
+    {% elif stat == "6" %}
+    <div class="col-sm-6 col-xl-2"><div class="card-stat"><div class="stat-icon" style="background:#dcfce7;color:var(--success);"><i class="bi bi-currency-rupee"></i></div><div class="stat-value">₹{{ total_revenue|floatformat:0 }}</div><div class="stat-label">Revenue</div></div></div>
+    {% endif %}
+    {% endfor %}
+  </div>
+
+  <div class="row g-4">
+    <!-- Pending Course Approvals -->
+    <div class="col-lg-8">
+      <div class="card mb-4">
+        <div class="p-4 border-bottom d-flex align-items-center justify-content-between">
+          <h5 class="fw-bold mb-0">⏳ Pending Course Approvals</h5>
+          {% if pending %}<span class="badge" style="background:var(--danger);color:white;border-radius:50px;">{{ pending }} pending</span>{% endif %}
+        </div>
+        {% if pending_courses %}
+        <div class="table-responsive">
+          <table class="table table-modern mb-0">
+            <thead><tr><th>Course</th><th>Instructor</th><th>Category</th><th>Actions</th></tr></thead>
+            <tbody>
+              {% for course in pending_courses %}
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div style="width:44px;height:32px;border-radius:6px;overflow:hidden;">
+                      {% if course.thumbnail %}<img src="{{ course.thumbnail.url }}" style="width:100%;height:100%;object-fit:cover;">
+                      {% else %}<div style="width:100%;height:100%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:.9rem;">📚</div>{% endif %}
+                    </div>
+                    <div>
+                      <div class="fw-bold" style="font-size:.88rem;">{{ course.title|truncatewords:5 }}</div>
+                      <a href="/courses/{{ course.slug }}/" style="font-size:.75rem;color:var(--primary);">View details →</a>
+                    </div>
+                  </div>
+                </td>
+                <td style="font-size:.88rem;">{{ course.instructor.get_full_name|default:course.instructor.username }}</td>
+                <td style="font-size:.85rem;">{{ course.category.name|default:"—" }}</td>
+                <td>
+                  <div class="d-flex gap-1">
+                    <form method="post" action="/dashboard/approve-course/{{ course.id }}/" class="d-inline">
+                      {% csrf_token %}<input type="hidden" name="action" value="approve">
+                      <button type="submit" class="btn btn-sm btn-success fw-bold" title="Approve"><i class="bi bi-check-lg me-1"></i>Approve</button>
+                    </form>
+                    <form method="post" action="/dashboard/approve-course/{{ course.id }}/" class="d-inline">
+                      {% csrf_token %}<input type="hidden" name="action" value="reject">
+                      <button type="submit" class="btn btn-sm btn-danger" title="Reject"><i class="bi bi-x-lg me-1"></i>Reject</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4 text-muted">
+          <i class="bi bi-check-circle" style="font-size:2rem;color:var(--success);"></i>
+          <p class="mt-2 mb-0">All courses reviewed! No pending approvals.</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Recent Courses -->
+      <div class="card">
+        <div class="p-4 border-bottom d-flex align-items-center justify-content-between">
+          <h5 class="fw-bold mb-0">📚 Recent Courses</h5>
+          <a href="/courses/" class="btn btn-outline-secondary btn-sm">View All</a>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-modern mb-0">
+            <thead><tr><th>Course</th><th>Instructor</th><th>Status</th><th>Enrolled</th><th>Created</th></tr></thead>
+            <tbody>
+              {% for course in recent_courses %}
+              <tr>
+                <td><a href="/courses/{{ course.slug }}/" class="text-decoration-none fw-bold" style="font-size:.88rem;color:var(--dark);">{{ course.title|truncatewords:4 }}</a></td>
+                <td style="font-size:.85rem;">{{ course.instructor.username }}</td>
+                <td><span class="badge-status badge-{{ course.status }}">{{ course.get_status_display }}</span></td>
+                <td class="fw-bold" style="font-size:.88rem;">{{ course.total_enrolled }}</td>
+                <td style="font-size:.78rem;color:var(--gray-500);">{{ course.created_at|date:"M d, Y" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+      <!-- Recent Users -->
+      <div class="card mb-4">
+        <div class="p-4 border-bottom d-flex align-items-center justify-content-between">
+          <h5 class="fw-bold mb-0">👥 Recent Users</h5>
+          <a href="/dashboard/manage-users/" class="btn btn-outline-secondary btn-sm">Manage</a>
+        </div>
+        <div class="p-3">
+          {% for u in recent_users %}
+          <div class="d-flex align-items-center gap-2 py-2 border-bottom" style="border-color:var(--gray-100)!important;">
+            <div class="user-avatar-placeholder" style="width:32px;height:32px;font-size:.75rem;flex-shrink:0;">{{ u.username|first|upper }}</div>
+            <div class="flex-grow-1">
+              <div class="fw-bold" style="font-size:.85rem;">{{ u.get_full_name|default:u.username }}</div>
+              <div style="font-size:.72rem;color:var(--gray-500);">{{ u.role|capfirst }} · {{ u.date_joined|date:"M d" }}</div>
+            </div>
+            <span class="badge" style="background:{% if u.role == 'student' %}var(--primary-light);color:var(--primary);{% elif u.role == 'instructor' %}#dcfce7;color:#166534;{% else %}#fee2e2;color:#991b1b;{% endif %}font-size:.7rem;">{{ u.role|capfirst }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Platform Stats Summary -->
+      <div class="card">
+        <div class="p-4 border-bottom"><h5 class="fw-bold mb-0">📊 Platform Stats</h5></div>
+        <div class="p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <span style="font-size:.88rem;color:var(--gray-700);">Published Courses</span>
+            <strong style="font-size:.95rem;">{{ published }}</strong>
+          </div>
+          <div class="progress mb-3" style="height:6px;">
+            <div class="progress-bar" style="width:{% if total_courses %}{% widthratio published total_courses 100 %}{% else %}0{% endif %}%"></div>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <span style="font-size:.88rem;color:var(--gray-700);">Total Enrollments</span>
+            <strong style="font-size:.95rem;">{{ total_enrollments }}</strong>
+          </div>
+          <div class="d-flex justify-content-between align-items-center">
+            <span style="font-size:.88rem;color:var(--gray-700);">Total Revenue</span>
+            <strong style="font-size:.95rem;color:var(--success);">₹{{ total_revenue|floatformat:0 }}</strong>
+          </div>
+        </div>
+        <div class="p-3 border-top">
+          <a href="/admin/" class="btn btn-outline-primary w-100 fw-bold"><i class="bi bi-gear me-2"></i>Django Admin</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Manage Users – EduLearn Admin{% endblock %}
+{% block content %}
+<div class="container-fluid px-4 py-4">
+  <div class="d-flex align-items-center gap-3 mb-4">
+    <a href="/dashboard/admin/" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+    <div><h1 class="page-title mb-0">Manage Users</h1><p class="page-subtitle mb-0">{{ users.count }} total users</p></div>
+  </div>
+  <div class="card">
+    <div class="p-4 border-bottom d-flex flex-wrap gap-2 align-items-center">
+      <input type="text" class="form-control" style="max-width:300px;" placeholder="🔍 Search users..." id="userSearch" onkeyup="filterUsers()">
+      <select class="form-select" style="max-width:160px;" id="roleFilter" onchange="filterUsers()">
+        <option value="">All Roles</option>
+        <option value="student">Students</option>
+        <option value="instructor">Instructors</option>
+        <option value="admin">Admins</option>
+      </select>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-modern mb-0" id="usersTable">
+        <thead><tr><th>User</th><th>Email</th><th>Role</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+          {% for u in users %}
+          <tr data-name="{{ u.get_full_name|lower }} {{ u.username|lower }}" data-role="{{ u.role }}">
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="user-avatar-placeholder" style="width:32px;height:32px;font-size:.75rem;">{{ u.username|first|upper }}</div>
+                <div>
+                  <div class="fw-bold" style="font-size:.88rem;">{{ u.get_full_name|default:u.username }}</div>
+                  <div style="font-size:.75rem;color:var(--gray-500);">@{{ u.username }}</div>
+                </div>
+              </div>
+            </td>
+            <td style="font-size:.85rem;">{{ u.email }}</td>
+            <td>
+              <span class="badge-status {% if u.role == 'admin' %}badge-rejected{% elif u.role == 'instructor' %}badge-published{% else %}badge-pending{% endif %}">{{ u.role|capfirst }}</span>
+            </td>
+            <td style="font-size:.82rem;color:var(--gray-600);">{{ u.date_joined|date:"M d, Y" }}</td>
+            <td>
+              {% if u.is_active %}<span class="badge-status badge-published">Active</span>
+              {% else %}<span class="badge-status badge-rejected">Inactive</span>{% endif %}
+            </td>
+            <td>
+              <div class="d-flex gap-1">
+                <a href="/accounts/profile/{{ u.username }}/" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></a>
+                {% if u != request.user %}
+                <button onclick="toggleUserStatus({{ u.id }}, this)" class="btn btn-sm {% if u.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}">
+                  {{ u.is_active|yesno:"Deactivate,Activate" }}
+                </button>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function filterUsers() {
+  const search = document.getElementById('userSearch').value.toLowerCase();
+  const role = document.getElementById('roleFilter').value;
+  document.querySelectorAll('#usersTable tbody tr').forEach(row => {
+    const name = row.dataset.name || '';
+    const rowRole = row.dataset.role || '';
+    const matchSearch = !search || name.includes(search);
+    const matchRole = !role || rowRole === role;
+    row.style.display = matchSearch && matchRole ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,43 @@
+<div class="course-card">
+  <div class="course-thumb">
+    {% if course.thumbnail %}
+    <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" loading="lazy">
+    {% else %}
+    <div class="course-thumb-placeholder">📚</div>
+    {% endif %}
+    <span class="course-badge {{ course.price_type }}">{{ course.price_type|capfirst }}</span>
+    {% if user.is_authenticated %}
+    <button class="course-wishlist-btn wishlist-btn" data-course-id="{{ course.id }}" title="Save to wishlist">
+      <i class="bi bi-heart"></i>
+    </button>
+    {% endif %}
+  </div>
+  <div class="course-body">
+    {% if course.category %}<div class="course-category">{{ course.category.name }}</div>{% endif %}
+    <div class="course-title">
+      <a href="/courses/{{ course.slug }}/" class="text-decoration-none" style="color:inherit;">{{ course.title }}</a>
+    </div>
+    <div class="course-instructor">
+      <i class="bi bi-person me-1"></i>{{ course.instructor.get_full_name|default:course.instructor.username }}
+    </div>
+    {% if course.avg_rating > 0 %}
+    <div class="course-rating">
+      <span class="rating-stars">{% for i in "12345"|make_list %}{% if forloop.counter <= course.avg_rating %}<i class="bi bi-star-fill"></i>{% else %}<i class="bi bi-star text-muted"></i>{% endif %}{% endfor %}</span>
+      <span style="font-size:.82rem;font-weight:700;color:#d97706;">{{ course.avg_rating }}</span>
+      <span class="rating-count">({{ course.total_ratings }})</span>
+    </div>
+    {% endif %}
+    <div class="course-meta">
+      <span><i class="bi bi-play-circle"></i> {{ course.total_lessons }} lessons</span>
+      <span><i class="bi bi-bar-chart"></i> {{ course.level|capfirst }}</span>
+    </div>
+    <div class="course-footer">
+      <div class="course-price {% if course.price_type == 'free' %}free-price{% endif %}">
+        {% if course.price_type == 'free' %}Free
+        {% elif course.discount_price %}₹{{ course.discount_price }} <span class="original">₹{{ course.price }}</span>
+        {% else %}₹{{ course.price }}{% endif %}
+      </div>
+      <span style="font-size:.78rem;color:var(--gray-500);"><i class="bi bi-people"></i> {{ course.total_enrolled }}</span>
+    </div>
+  </div>
+</div>

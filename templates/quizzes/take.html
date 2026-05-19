@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block title %}{{ quiz.title }} – EduLearn{% endblock %}
+{% block show_footer %}{% endblock %}
+{% block content %}
+<div class="container-fluid px-4 py-4">
+  <!-- Header -->
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h2 class="fw-bold mb-1">{{ quiz.title }}</h2>
+      <div style="font-size:.88rem;color:var(--gray-600);">{{ questions|length }} questions {% if quiz.pass_score %}· {{ quiz.pass_score }}% to pass{% endif %}</div>
+    </div>
+    {% if quiz.time_limit > 0 %}
+    <div>
+      <div style="font-size:.75rem;color:var(--gray-500);text-align:center;margin-bottom:.25rem;">Time Remaining</div>
+      <div class="quiz-timer" id="quizTimer">{{ quiz.time_limit }}:00</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Progress -->
+  <div class="mb-4">
+    <div class="d-flex gap-1 flex-wrap" id="questionNav">
+      {% for q in questions %}
+      <button class="btn btn-sm" id="navBtn{{ q.id }}" onclick="scrollToQuestion({{ q.id }})"
+        style="width:36px;height:36px;border-radius:8px;border:1.5px solid var(--gray-200);font-size:.8rem;font-weight:700;">
+        {{ forloop.counter }}
+      </button>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Questions -->
+  <form id="quizForm">
+    {% csrf_token %}
+    {% for question in questions %}
+    <div class="quiz-question animate-on-scroll" id="question{{ question.id }}">
+      <div class="d-flex gap-2 mb-3">
+        <span style="background:var(--primary);color:white;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0;">{{ forloop.counter }}</span>
+        <p class="mb-0 fw-600" style="font-size:.95rem;line-height:1.6;padding-top:2px;">{{ question.text }}</p>
+      </div>
+      <div class="ms-2">
+        {% for choice in question.choices.all %}
+        <div class="choice-option" data-question-id="{{ question.id }}" data-choice-id="{{ choice.id }}"
+             onclick="selectChoice(this, {{ question.id }}, {{ choice.id }})">
+          <div style="width:20px;height:20px;border-radius:50%;border:2px solid var(--gray-300);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.2s;" class="choice-radio">
+            <div style="width:10px;height:10px;border-radius:50%;background:var(--primary);display:none;" class="choice-dot"></div>
+          </div>
+          <span style="font-size:.9rem;">{{ choice.text }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </form>
+
+  <!-- Submit -->
+  <div class="text-center mt-4 mb-5">
+    <button class="btn btn-primary btn-lg px-5 py-3 fw-bold" id="submitQuizBtn" onclick="submitQuiz()">
+      <i class="bi bi-send me-2"></i>Submit Quiz
+    </button>
+    <div style="font-size:.8rem;color:var(--gray-500);margin-top:.5rem;">Make sure you've answered all questions before submitting</div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+const quiz = new QuizEngine({{ quiz.id }}, {{ quiz.time_limit }});
+
+function selectChoice(el, questionId, choiceId) {
+  // Remove selection from siblings
+  document.querySelectorAll(`.choice-option[data-question-id="${questionId}"]`).forEach(opt => {
+    opt.classList.remove('selected');
+    opt.querySelector('.choice-radio').style.borderColor = 'var(--gray-300)';
+    opt.querySelector('.choice-dot').style.display = 'none';
+  });
+  // Select this
+  el.classList.add('selected');
+  el.querySelector('.choice-radio').style.borderColor = 'var(--primary)';
+  el.querySelector('.choice-dot').style.display = 'block';
+  quiz.answers[questionId] = choiceId;
+  // Update nav button
+  document.getElementById(`navBtn${questionId}`)?.setAttribute('style',
+    'width:36px;height:36px;border-radius:8px;border:2px solid var(--primary);font-size:.8rem;font-weight:700;background:var(--primary-light);color:var(--primary);');
+}
+
+function scrollToQuestion(id) {
+  document.getElementById(`question${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function submitQuiz() {
+  const total = {{ questions|length }};
+  const answered = Object.keys(quiz.answers).length;
+  if (answered < total && !confirm(`You've answered ${answered} of ${total} questions. Submit anyway?`)) return;
+  quiz.submit();
+}
+</script>
+{% endblock %}

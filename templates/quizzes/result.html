@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Quiz Result – EduLearn{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <!-- Score Card -->
+      <div class="card text-center p-5 mb-4" style="background:{% if attempt.is_passed %}linear-gradient(135deg,#f0fdf4,#dcfce7){% else %}linear-gradient(135deg,#fef2f2,#fee2e2){% endif %};border:2px solid {% if attempt.is_passed %}var(--success){% else %}var(--danger){% endif %};">
+        <div style="font-size:4rem;">{% if attempt.is_passed %}🎉{% else %}😔{% endif %}</div>
+        <h2 class="fw-bold mt-2 mb-1">{% if attempt.is_passed %}Congratulations!{% else %}Keep Practicing!{% endif %}</h2>
+        <p style="font-size:1.1rem;color:var(--gray-700);">You scored</p>
+        <div style="font-size:4rem;font-weight:900;font-family:'Poppins',sans-serif;color:{% if attempt.is_passed %}var(--success){% else %}var(--danger){% endif %};">
+          {{ attempt.score }}%
+        </div>
+        <div style="font-size:1rem;color:var(--gray-600);margin-top:.5rem;">
+          {{ attempt.correct_answers }} / {{ attempt.total_questions }} correct answers
+        </div>
+        <div class="d-flex justify-content-center gap-4 mt-4" style="font-size:.88rem;color:var(--gray-600);">
+          <span><i class="bi bi-clock me-1"></i>{{ attempt.time_taken }}s</span>
+          <span><i class="bi bi-check-circle me-1 text-success"></i>{{ attempt.correct_answers }} correct</span>
+          <span><i class="bi bi-x-circle me-1 text-danger"></i>{{ attempt.total_questions|add:"-"|add:attempt.correct_answers }} incorrect</span>
+        </div>
+      </div>
+
+      <!-- Answers Review -->
+      <div class="mb-4">
+        <h4 class="fw-bold mb-3">📝 Answer Review</h4>
+        {% for answer in answers %}
+        <div class="card p-4 mb-3" style="border-left:4px solid {% if answer.is_correct %}var(--success){% else %}var(--danger){% endif %};">
+          <div class="d-flex gap-2 mb-3">
+            <span style="background:{% if answer.is_correct %}var(--success){% else %}var(--danger){% endif %};color:white;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0;">
+              {% if answer.is_correct %}<i class="bi bi-check"></i>{% else %}<i class="bi bi-x"></i>{% endif %}
+            </span>
+            <p class="mb-0 fw-600" style="font-size:.92rem;">{{ answer.question.text }}</p>
+          </div>
+          {% for choice in answer.question.choices.all %}
+          <div class="choice-option {% if choice.is_correct %}correct{% elif choice == answer.selected_choice and not choice.is_correct %}incorrect{% endif %} mb-2" style="cursor:default;">
+            <span style="font-size:.88rem;">{{ choice.text }}</span>
+            {% if choice.is_correct %}<span class="ms-auto" style="font-size:.78rem;font-weight:700;color:var(--success);">✓ Correct</span>{% endif %}
+            {% if choice == answer.selected_choice and not choice.is_correct %}<span class="ms-auto" style="font-size:.78rem;font-weight:700;color:var(--danger);">✗ Your answer</span>{% endif %}
+          </div>
+          {% endfor %}
+          {% if answer.question.explanation %}
+          <div class="mt-2 p-2" style="background:#f0f9ff;border-radius:8px;font-size:.83rem;color:var(--info);">
+            <i class="bi bi-lightbulb me-1"></i><strong>Explanation:</strong> {{ answer.question.explanation }}
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Actions -->
+      <div class="d-flex gap-3 justify-content-center">
+        <a href="/quizzes/{{ attempt.quiz.id }}/" class="btn btn-outline-primary fw-bold"><i class="bi bi-arrow-repeat me-1"></i>Try Again</a>
+        <a href="/enrollments/learn/{{ attempt.quiz.module.course.slug }}/1/" class="btn btn-primary fw-bold"><i class="bi bi-play me-1"></i>Continue Course</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

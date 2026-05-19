@@ -1,0 +1,4 @@
+django>=5.2.14
+pillow>=10.0
+reportlab>=4.0
+razorpay>=1.4

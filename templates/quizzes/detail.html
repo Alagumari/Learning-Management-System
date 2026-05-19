@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}{{ quiz.title }} – EduLearn{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-7">
+      <div class="card p-5 text-center">
+        <div style="font-size:3.5rem;margin-bottom:1rem;">🧠</div>
+        <h2 class="fw-bold mb-2">{{ quiz.title }}</h2>
+        {% if quiz.description %}<p class="text-muted mb-4">{{ quiz.description }}</p>{% endif %}
+        <div class="row g-3 mb-4">
+          <div class="col-4"><div class="card-stat"><div class="stat-value">{{ quiz.questions.count }}</div><div class="stat-label">Questions</div></div></div>
+          <div class="col-4"><div class="card-stat"><div class="stat-value">{{ quiz.pass_score }}%</div><div class="stat-label">Pass Score</div></div></div>
+          <div class="col-4"><div class="card-stat"><div class="stat-value">{{ quiz.max_attempts }}</div><div class="stat-label">Max Attempts</div></div></div>
+        </div>
+        {% if best_attempt %}<div class="alert {% if best_attempt.is_passed %}alert-success{% else %}alert-warning{% endif %} mb-4">Best Score: <strong>{{ best_attempt.score }}%</strong> {% if best_attempt.is_passed %}✅ Passed{% else %}❌ Not Passed{% endif %}</div>{% endif %}
+        {% if can_attempt %}
+        <a href="/quizzes/{{ quiz.id }}/take/" class="btn btn-primary btn-lg px-5 fw-bold"><i class="bi bi-play-circle me-2"></i>Start Quiz</a>
+        <div style="font-size:.8rem;color:var(--gray-500);margin-top:.5rem;">{{ attempts.count }} of {{ quiz.max_attempts }} attempts used</div>
+        {% else %}
+        <div class="alert alert-danger">Maximum attempts reached.</div>
+        <a href="/enrollments/learn/{{ quiz.module.course.slug }}/1/" class="btn btn-outline-primary">Back to Course</a>
+        {% endif %}
+        {% if attempts %}
+        <div class="mt-4 text-start"><h6 class="fw-bold mb-2">Previous Attempts</h6>
+          {% for attempt in attempts %}<div class="d-flex justify-content-between align-items-center p-2 rounded mb-1" style="background:var(--gray-50);font-size:.85rem;"><span>Attempt {{ forloop.counter }}</span><span class="fw-bold {% if attempt.is_passed %}text-success{% else %}text-danger{% endif %}">{{ attempt.score }}%</span><a href="/quizzes/result/{{ attempt.id }}/" class="btn btn-sm btn-outline-secondary">Review</a></div>{% endfor %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

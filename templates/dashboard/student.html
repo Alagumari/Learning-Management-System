@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% block title %}Student Dashboard – EduLearn{% endblock %}
+{% block content %}
+<div class="container-fluid px-4 py-4">
+  <div class="dashboard-header">
+    <h1 class="page-title">Welcome back, {{ user.first_name|default:user.username }}! 👋</h1>
+    <p class="page-subtitle">Continue your learning journey</p>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="row g-4 mb-4">
+    <div class="col-sm-6 col-xl-3">
+      <div class="card-stat">
+        <div class="stat-icon" style="background:#ede9ff;color:var(--primary);"><i class="bi bi-collection-play"></i></div>
+        <div class="stat-value">{{ active_enrollments.count }}</div>
+        <div class="stat-label">Enrolled Courses</div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="card-stat">
+        <div class="stat-icon" style="background:#dcfce7;color:var(--success);"><i class="bi bi-check-circle"></i></div>
+        <div class="stat-value">{{ completed_enrollments.count }}</div>
+        <div class="stat-label">Completed</div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="card-stat">
+        <div class="stat-icon" style="background:#fef9c3;color:#854d0e;"><i class="bi bi-award"></i></div>
+        <div class="stat-value">{{ certificates.count }}</div>
+        <div class="stat-label">Certificates</div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="card-stat">
+        <div class="stat-icon" style="background:#fee2e2;color:var(--danger);"><i class="bi bi-heart"></i></div>
+        <div class="stat-value">{{ wishlist_count }}</div>
+        <div class="stat-label">Wishlist</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- In Progress -->
+  {% if in_progress %}
+  <div class="mb-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h4 class="fw-bold mb-0">▶️ Continue Learning</h4>
+    </div>
+    <div class="row g-4">
+      {% for enrollment in in_progress|slice:":4" %}
+      <div class="col-md-6 col-xl-3">
+        <div class="card h-100" style="border-radius:14px;">
+          <div style="position:relative;aspect-ratio:16/9;overflow:hidden;">
+            {% if enrollment.course.thumbnail %}
+            <img src="{{ enrollment.course.thumbnail.url }}" style="width:100%;height:100%;object-fit:cover;">
+            {% else %}
+            <div style="width:100%;height:100%;background:linear-gradient(135deg,var(--primary-light),#ddd6fe);display:flex;align-items:center;justify-content:center;font-size:2.5rem;">📚</div>
+            {% endif %}
+            <div style="position:absolute;bottom:0;left:0;right:0;height:4px;background:var(--gray-200);">
+              <div style="height:100%;width:{{ enrollment.progress }}%;background:linear-gradient(90deg,var(--primary),var(--secondary));"></div>
+            </div>
+          </div>
+          <div class="p-3">
+            <div class="fw-bold mb-1" style="font-size:.9rem;line-height:1.3;">{{ enrollment.course.title|truncatewords:6 }}</div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span style="font-size:.78rem;color:var(--gray-600);">{{ enrollment.progress }}% complete</span>
+            </div>
+            {% if enrollment.last_lesson %}
+            <a href="/enrollments/learn/{{ enrollment.course.slug }}/{{ enrollment.last_lesson.id }}/" class="btn btn-primary btn-sm w-100 fw-bold" style="border-radius:8px;">
+              <i class="bi bi-play me-1"></i>Continue
+            </a>
+            {% else %}
+            <a href="/courses/{{ enrollment.course.slug }}/" class="btn btn-outline-primary btn-sm w-100" style="border-radius:8px;">View Course</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="row g-4">
+    <!-- All enrolled courses -->
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="p-4 border-bottom d-flex align-items-center justify-content-between">
+          <h5 class="fw-bold mb-0">📚 My Courses</h5>
+          <a href="/courses/" class="btn btn-outline-primary btn-sm">Browse More</a>
+        </div>
+        {% if enrollments %}
+        <div class="p-2">
+          {% for enrollment in enrollments %}
+          <div class="d-flex gap-3 p-3 rounded mb-1" style="transition:.2s;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background='transparent'">
+            <div style="width:70px;height:50px;border-radius:8px;overflow:hidden;flex-shrink:0;">
+              {% if enrollment.course.thumbnail %}
+              <img src="{{ enrollment.course.thumbnail.url }}" style="width:100%;height:100%;object-fit:cover;">
+              {% else %}
+              <div style="width:100%;height:100%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:1.5rem;">📚</div>
+              {% endif %}
+            </div>
+            <div class="flex-grow-1">
+              <div class="fw-bold mb-1" style="font-size:.9rem;">
+                <a href="/courses/{{ enrollment.course.slug }}/" class="text-decoration-none" style="color:inherit;">{{ enrollment.course.title }}</a>
+              </div>
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <div class="progress flex-grow-1" style="height:5px;">
+                  <div class="progress-bar" style="width:{{ enrollment.progress }}%"></div>
+                </div>
+                <span style="font-size:.75rem;color:var(--gray-600);white-space:nowrap;">{{ enrollment.progress }}%</span>
+              </div>
+              <div style="font-size:.75rem;color:var(--gray-500);">{{ enrollment.get_status_display }} · {{ enrollment.enrolled_at|date:"M d, Y" }}</div>
+            </div>
+            <div class="flex-shrink-0">
+              {% if enrollment.status == 'completed' %}
+              <a href="/certificates/" class="btn btn-sm btn-success" style="border-radius:8px;">🏆 Certificate</a>
+              {% elif enrollment.last_lesson %}
+              <a href="/enrollments/learn/{{ enrollment.course.slug }}/{{ enrollment.last_lesson.id }}/" class="btn btn-sm btn-primary" style="border-radius:8px;">Continue</a>
+              {% else %}
+              <a href="/courses/{{ enrollment.course.slug }}/" class="btn btn-sm btn-outline-primary" style="border-radius:8px;">Start</a>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+          <div style="font-size:4rem;">🎓</div>
+          <h5 class="mt-3">No courses yet</h5>
+          <p class="text-muted">Start learning something amazing today!</p>
+          <a href="/courses/" class="btn btn-primary mt-1">Browse Courses</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Certificates & Activity -->
+    <div class="col-lg-4">
+      {% if certificates %}
+      <div class="card mb-4">
+        <div class="p-4 border-bottom"><h5 class="fw-bold mb-0">🏆 My Certificates</h5></div>
+        <div class="p-3">
+          {% for cert in certificates %}
+          <div class="cert-card mb-3" style="padding:1rem;">
+            <div style="font-size:1.5rem;">🎓</div>
+            <div class="fw-bold mt-1 mb-1" style="font-size:.88rem;">{{ cert.course.title|truncatewords:5 }}</div>
+            <div style="font-size:.75rem;color:var(--gray-600);">{{ cert.issued_at|date:"M d, Y" }}</div>
+            <a href="/certificates/{{ cert.certificate_id }}/download/" class="btn btn-warning btn-sm mt-2 fw-bold">
+              <i class="bi bi-download me-1"></i>Download PDF
+            </a>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="card">
+        <div class="p-4 border-bottom"><h5 class="fw-bold mb-0">🔥 Quick Actions</h5></div>
+        <div class="p-3">
+          <a href="/courses/" class="btn btn-outline-primary w-100 mb-2 text-start"><i class="bi bi-search me-2"></i>Browse Courses</a>
+          <a href="/courses/wishlist/" class="btn btn-outline-secondary w-100 mb-2 text-start"><i class="bi bi-heart me-2"></i>My Wishlist</a>
+          <a href="/certificates/" class="btn btn-outline-secondary w-100 mb-2 text-start"><i class="bi bi-award me-2"></i>Certificates</a>
+          <a href="/payments/history/" class="btn btn-outline-secondary w-100 text-start"><i class="bi bi-receipt me-2"></i>Purchase History</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
