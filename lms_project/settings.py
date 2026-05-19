@@ -73,6 +73,6 @@ MESSAGE_TAGS = {
 }
 
 # ── Razorpay ──
-RAZORPAY_KEY_ID     = 'rzp_test_SqmRHDTpTPT6t1'
-RAZORPAY_KEY_SECRET = 'MlySzkwuc3x5pZIGLq8SyMH2'
+RAZORPAY_KEY_ID     = '#'
+RAZORPAY_KEY_SECRET = '#'
 RAZORPAY_CURRENCY   = 'INR'
